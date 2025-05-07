@@ -195,6 +195,26 @@ model is fit.
 ```{r}
 #| label: exercise-3
 
+fit_model <- function(data, mod_formula, ...,
+                      remove_outliers = FALSE, impute_missing = FALSE,
+                      impute_fun = mean, sd_thresh = 3) {
+  
+  vars <- enquos(...) #variables in ...
+  
+  # Remove outliers
+  if (remove_outliers) {
+    data <- remove_outliers(data, !!!vars, sd_thresh = sd_thresh)
+  }
+
+  # Impute
+  if (impute_missing) {
+    data <- impute_missing(data, !!!vars, impute_fun = impute_fun)
+  }
+
+  # Fit model
+  model <- lm(mod_formula, data = data)
+  return(model)
+}
 
 ```
 
