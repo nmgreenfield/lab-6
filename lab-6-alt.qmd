@@ -4,6 +4,13 @@ subtitle: "Contributing to R for Data Science"
 editor: source
 ---
 
+```{r}
+#| include: false
+
+library(tidyverse)
+```
+
+
 The exercises from the functions below were pulled from the newest version of
 [*R for Data Science*](https://r4ds.hadley.nz/). Specifically, from Chapters 25 
 and 26. For this "alternative" lab you will complete the exercises from the 
@@ -22,7 +29,11 @@ standardize a numeric vector, but infinite values are left unchanged. Rewrite
 
 rescale01 <- function(x) {
   rng <- range(x, na.rm = TRUE, finite = TRUE)
-  (x - rng[1]) / (rng[2] - rng[1])
+  case_when(
+    x == Inf ~ 1,
+    x == -Inf ~ -1,
+    .default = (x - rng[1]) / (rng[2] - rng[1])
+  )
 }
 ```
 
@@ -32,6 +43,11 @@ computes the age of each person in years.
 ```{r}
 #| label: question-2
 
+age_function <- function(birthday){
+  dates <- as.Date(birthday, format = "%m/%d/%Y")
+  age <- as.numeric(difftime(today(), dates, units = "days")) / 365
+  return(age)
+}
 ```
 
 **Question 3:** Write a function that computes the variance and skewness of a
@@ -40,11 +56,32 @@ numeric vector. Feel free to look up the definitions on Wikipedia or elsewhere!
 ```{r}
 #| label: question-3
 
+var_skew <- function(x){
+  n <- length(x)
+  mean_x <- sum(x)/n
+  
+  variance <- sum((x - mean_x)^2) / (n - 1)
+  
+  sd_x <- sqrt(variance)
+  
+  skewness <- (n / ((n - 1) * (n - 2))) * sum(((x - mean_x) / sd_x)^3)
+  
+  list(variance = variance, skewness = skewness)
+}
 ```
 
 **Question 4:** Write a function called `both_na()` which takes two vectors of
 the same length and returns the number of positions that have an `NA` in both
 vectors.
+
+```{r}
+#| label: question-3
+
+both_na <- function(x,y){
+  sum(is.na(x) & is.na(y))
+}
+```
+
 
 ## Data Frame Functions
 

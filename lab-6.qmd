@@ -4,6 +4,13 @@ subtitle: "Performing Many Different Versions of an Analysis"
 editor: source
 ---
 
+```{r}
+#| include: false
+
+library(tidyverse)
+library(rlang)
+```
+
 This assignment will challenge your function writing abilities. I'm not going 
 to lie, these functions are difficult but well within your reach. I do, however,
 want to recognize that not everyone is interested in being a "virtuoso" with 
@@ -62,6 +69,33 @@ a threshold on the number of SDs away from the mean used to define outliers.
 ```{r}
 #| label: exercise-1
 
+remove_outliers <- function(data, ..., sd_thresh = 3){
+  vars <- quos(...)  #variables in ...
+  var_names <- sapply(vars, as_name) #converts vars to character
+
+  non_numeric_vars <- var_names[!sapply(data[var_names], is.numeric)]
+  
+  if (length(non_numeric_vars) > 0) {
+    warning("The following variables are categorical and will be ignored: ", 
+            paste(non_numeric_vars, collapse = ", "))
+  }
+
+  numeric_vars <- var_names[sapply(data[var_names], is.numeric)]
+
+  if (length(numeric_vars) == 0) {
+    stop("No numeric variables provided for outlier detection.")
+  }
+
+  z_scores <- data %>%
+    select(all_of(numeric_vars)) %>%
+    mutate(across(everything(), scale))
+
+  keep_rows <- apply(abs(z_scores), 1, function(row) all(row < sd_thresh))
+
+  return(data[keep_rows, ])
+}
+
+
 ```
 
 ## Testing Your Function! 
@@ -100,7 +134,26 @@ variables to impute values for, and a function to use when imputing.
 ```{r}
 #| label: exercise-2
 
+impute_missing <- function(data, ..., impute_fun = mean){
+  vars <- enquos(...) #variables in ...
+  var_names <- sapply(vars, as_name) #converts vars to character
+  
+  impute_fun <- match.fun(impute_fun) #function from impute_fun
 
+  non_numeric_vars <- var_names[!sapply(data[, var_names], is.numeric)]
+  
+  if (length(non_numeric_vars) > 0) {
+    warning("The following variables are not numeric and will be skipped: ", 
+            paste(non_numeric_vars, collapse = ", "))
+  }
+  
+  # Apply imputation only to numeric columns
+  data %>%
+    mutate(across(
+      all_of(var_names),
+      ~ if (is.numeric(.)) {replace_na(., impute_fun(., na.rm = TRUE))} else {.}
+    ))
+}
 ```
 
 ## Testing Your Function! 
