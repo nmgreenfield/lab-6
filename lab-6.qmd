@@ -9,6 +9,7 @@ editor: source
 
 library(tidyverse)
 library(rlang)
+library(purrr)
 ```
 
 This assignment will challenge your function writing abilities. I'm not going 
@@ -277,6 +278,15 @@ combinations for our analyses.
 ```{r}
 #| label: exercise-4
 
+param_grid <- crossing(
+  impute_missing = c(TRUE, FALSE),
+  remove_outliers = c(TRUE, FALSE),
+  mod_formula = c(
+    price ~ carat,
+    price ~ carat + cut,
+    price ~ carat + cut + clarity,
+    price ~ carat + cut + clarity + color)
+)
 ```
 
 ## Iterating Over the Parameters
@@ -289,6 +299,18 @@ every combination of arguments from `diamonds.
 ```{r}
 #| label: exercise-5
 
+models <- param_grid %>%
+  mutate(model = pmap(
+    list(impute_missing, remove_outliers, mod_formula),
+    ~ fit_model(data = diamonds,
+                mod_formula = ..3,
+                remove_outliers = ..2,
+                impute_missing = ..1,
+                carat)
+  ))
+```
 
+```{r, include=F}
+summary(models$model[[1]])
 ```
 
