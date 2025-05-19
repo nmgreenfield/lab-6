@@ -72,9 +72,12 @@ a threshold on the number of SDs away from the mean used to define outliers.
 #| label: exercise-1
 
 remove_outliers <- function(data, ..., sd_thresh = 3){
+  
+  # grabs variables in ... and converts to character
   vars <- quos(...)  #variables in ...
   var_names <- sapply(vars, as_name) #converts vars to character
 
+  # finds any non-numeric vars and gives warning message
   non_numeric_vars <- var_names[!sapply(data[var_names], is.numeric)]
   
   if (length(non_numeric_vars) > 0) {
@@ -82,6 +85,7 @@ remove_outliers <- function(data, ..., sd_thresh = 3){
             paste(non_numeric_vars, collapse = ", "))
   }
 
+  # finds numeric vars and only keeps rows that aren't outliers
   numeric_vars <- var_names[sapply(data[var_names], is.numeric)]
 
   if (length(numeric_vars) == 0) {
@@ -94,6 +98,7 @@ remove_outliers <- function(data, ..., sd_thresh = 3){
 
   keep_rows <- apply(abs(z_scores), 1, function(row) all(row < sd_thresh))
 
+  # return final data set
   return(data[keep_rows, ])
 }
 
@@ -137,11 +142,14 @@ variables to impute values for, and a function to use when imputing.
 #| label: exercise-2
 
 impute_missing <- function(data, ..., impute_fun = mean){
+  
+  # grabs variables in ... and converts to character
   vars <- enquos(...) #variables in ...
   var_names <- sapply(vars, as_name) #converts vars to character
   
   impute_fun <- match.fun(impute_fun) #function from impute_fun
 
+  # finds any non-numeric vars and gives warning message
   non_numeric_vars <- var_names[!sapply(data[, var_names], is.numeric)]
   
   if (length(non_numeric_vars) > 0) {
